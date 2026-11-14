@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: event-service
+  namespace: cinemaabyss
+  labels:
+    app: event-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: event-service
+  template:
+    metadata:
+      labels:
+        app: event-service
+    spec:
+      imagePullSecrets:
+        - name: dockerconfigjson
+      containers:
+        - name: event-service
+          image: ghcr.io/dmitrakovpv/projectrepo/events-service:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8082
+          env:
+            - name: PORT
+              value: "8082"
+            - name: KAFKA_BROKERS
+              value: "kafka:9092"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: event-service
+  namespace: cinemaabyss
+  labels:
+    app: event-service
+spec:
+  type: ClusterIP
+  selector:
+    app: event-service
+  ports:
+    - name: http
+      port: 8082
+      targetPort: 8082
